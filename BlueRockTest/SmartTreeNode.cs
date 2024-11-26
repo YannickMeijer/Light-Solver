@@ -1,13 +1,4 @@
-﻿using System;
-using System.CodeDom.Compiler;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Data;
-using System.Linq;
-using System.Reflection.Metadata.Ecma335;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Data;
 
 namespace BlueRockTest
 {
@@ -37,7 +28,7 @@ namespace BlueRockTest
                         var posToIncrement = (incrementPosition.Item1 + indexX, incrementPosition.Item2 + indexY);
                         var numberInPlace = workingBoard[posToIncrement];
                         workingIncrements--;
-                        if (workingTotals.TotalNeededToZeroBoardAfterChange(numberInPlace) > workingIncrements || numberInPlace + 1 <= piece.minimumValue)
+                        if (workingTotals.TotalNeededToZeroBoardAfterChange(numberInPlace) > workingIncrements || (numberInPlace + 1 ) < piece.minimumValue)
                         {
                             earlyStop = true;
                             break;
@@ -52,7 +43,7 @@ namespace BlueRockTest
                         continue;
                     }
 
-                    result = NextSolve(workingBoard, workingTotals, pieceIndex, pieceList, incrementsLeftExclusive);
+                    result = SelectNextSolve(workingBoard, workingTotals, pieceIndex, pieceList, incrementsLeftExclusive);
                     if (result.Count == 0)
                     {
                         continue;
@@ -65,7 +56,7 @@ namespace BlueRockTest
             return [];
         }
 
-        public static List<(int, (int, int))> NextSolve(Dictionary<(int, int), int> workingBoard, BoardTotals workingTotals, int pieceIndex, List<Piece> pieceList, int incrementsLeftExclusive)
+        public static List<(int, (int, int))> SelectNextSolve(Dictionary<(int, int), int> workingBoard, BoardTotals workingTotals, int pieceIndex, List<Piece> pieceList, int incrementsLeftExclusive)
         {
             if (pieceIndex > 0)
             {
@@ -144,7 +135,7 @@ namespace BlueRockTest
 
         private static bool CanSuccesfullyApplyPiece(Piece piece, (int, int) pieceTopLeftCoordinate, Dictionary<(int, int), int> workingBoard, BoardTotals workingTotals)
         {
-            var earlyExit = false;
+            List<(int, int)> coordsToApply = [];
             for (int index = 1; index < piece.IncrementLocations.Count; index++)
             {
                 var currentIncrement = piece.IncrementLocations[index];
@@ -152,14 +143,18 @@ namespace BlueRockTest
 
                 if (workingBoard[coordianteToCheck] == 0)
                 {
-                    earlyExit = true;
-                    break;
+                    return true;
                 }
-                workingTotals.AddOntoValue(workingBoard[coordianteToCheck]);
-                workingBoard[coordianteToCheck] = (workingBoard[coordianteToCheck] + 1) % PlayField.Depth;
+                coordsToApply.Add(coordianteToCheck);
             }
 
-            return earlyExit;
+            foreach (var coordinate in coordsToApply)
+            {
+                workingTotals.AddOntoValue(workingBoard[coordinate]);
+                workingBoard[coordinate] = (workingBoard[coordinate] + 1) % PlayField.Depth;
+            }
+
+            return false;
         }
     }
 }

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Reflection;
-
-namespace BlueRockTest
+﻿namespace BlueRockTest
 {
     internal class PlayField
     {
@@ -109,31 +105,6 @@ namespace BlueRockTest
             }
         }
 
-        public void PrintField()
-        {
-
-            var intermediateLinePart = " ---";
-            string intermediateLine = string.Empty;
-            for (int x = 0; x < FieldXDimension; x++)
-            {
-                intermediateLine += intermediateLinePart;
-            }
-            Console.WriteLine(intermediateLine);
-
-            for (int y = 0; y < FieldYDimension; y++)
-            {
-                string line = string.Empty;
-                for (int x = 0; x < FieldXDimension; x++)
-                {
-                    line += $"| {initialBoardState[(x, y)]} ";
-                }
-                line += "|";
-                Console.WriteLine(line);
-                Console.WriteLine(intermediateLine);
-            }
-
-        }
-
         public void ApplyUnmovingPieces(Dictionary<int, (int, int)> resultDictionary)
         {
             foreach (var piece in UnMovingPieces)
@@ -157,18 +128,29 @@ namespace BlueRockTest
             var treeRoot = new SmartTreeNode(_InitialTotals, initialBoardState);
             var coordinates = treeRoot.BuildAndSolveTree(_pieces, _pieces.Count - 1, _totalIncrement);
 
+            var success = false;
             if (coordinates.Count > 0)
             {
                 foreach (var coordinate in coordinates)
                 {
                     resultDictionary.Add(coordinate.Item1, coordinate.Item2);
                 }
+                var result = string.Empty;
                 for (int index = 0; index < _pieces.Count; index++)
                 {
-                    Console.WriteLine(resultDictionary[index]);
+                    result += resultDictionary[index].Item1.ToString() + ',' + resultDictionary[index].Item2.ToString();
+
+                    if (index != _pieces.Count - 1) {
+                        result += ' ';
+                    }
+                }
+                success = Checker(_pieces,coordinates);
+                if (success)
+                {
+                    Console.WriteLine(result);
                 }
             }
-            return Checker(_pieces, coordinates);
+            return success;
         }
 
         public bool Checker(List<Piece> pieces, List<(int, (int, int))> coordinates)
